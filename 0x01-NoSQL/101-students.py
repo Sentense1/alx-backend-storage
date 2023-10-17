@@ -1,4 +1,4 @@
-#!/usr/bin/env pyth0n3
+#!/usr/bin/env python3
 """
 Module that returns all students sorted by average score.
 """
