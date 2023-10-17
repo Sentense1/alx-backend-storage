@@ -1,13 +1,16 @@
 #!/usr/bin/env pyth0n3
 """
-
+Module that returns all students sorted by average score.
 """
 from pymongo import MongoClient
 
 
 def top_students(mongo_collection):
     """
+    function that returns all students sorted by average score
 
+    Returns:
+        top students
     """
     top_student = mongo_collection.aggregate([
         {
