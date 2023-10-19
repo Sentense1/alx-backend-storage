@@ -86,7 +86,7 @@ def replay(method: Callable) -> None:
 
     print(f"{method_name} was called {calls_count} times:")
     for inputs, outputs in zip(input_data, output_data):
-        print(f"{method_name}({inputs.decode('utf-8')}) -> {outputs.decode('utf-8')}")  # noqa
+        print(f"{method_name}({inputs.decode('utf-8')})")  # noqa
 
 
 class Cache:
