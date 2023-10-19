@@ -5,7 +5,7 @@ Module defines a simple caching class that stores data in a Redis cache.
 
 import redis
 import uuid
-from ctypes import Union
+from typing import Union
 
 
 class Cache:
