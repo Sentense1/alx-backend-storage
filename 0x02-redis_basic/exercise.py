@@ -6,6 +6,32 @@ Module defines a simple caching class that stores data in a Redis cache.
 import redis
 import uuid
 from typing import Union, Callable, Optional
+import functools
+
+
+def count_calls(method: Callable) -> Callable:
+    """
+    A decorator to count the number of times a method is called using Redis.
+
+    Args:
+        method (callable): The method to be decorated.
+
+    Returns:
+        callable: The decorated method.
+    """
+    @functools.wrap(method)
+    def wrapper(self, *args, **kwargs):
+        """
+        """
+        # Use the qualified name as the key
+        key = method.__qualname__
+        # Increment the call coun t using the INCR command
+        self._redis.incr(key)
+        # Call and return the original method
+        return method(self, *args, **kwargs)
+    # Return the wrapper function
+    return wrapper
+
 
 
 class Cache:
@@ -25,6 +51,7 @@ class Cache:
         self._redis.flushdb()
 
 
+    @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
         Store the provided data in the Redis cache and return the key.
@@ -60,9 +87,15 @@ class Cache:
         if data is None:
             return data
         # Use the fn function/method to convert the data to str/int
-        callable_fn = fn(data)
-        # Return the converted str/int
-        return callable_fn
+        if fn:
+            # Pass the data to fn and save to caalable_fn
+            callable_fn = fn(data)
+            # Retuen the converted data
+            return callable_fn
+        # fn was not passed to the get method
+        else:
+            # Return the data none-converted
+            return data
 
 
     def get_str(self, key: str) -> str:
