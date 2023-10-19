@@ -9,6 +9,35 @@ from typing import Union, Callable, Optional
 import functools
 
 
+def call_history(method: Callable) -> Callable:
+    """
+    Decorator function
+    """
+    @functools.wraps(method)
+    def wrapper(self, *args, **kwargs):  # soucery skip: avoid-builtin-shadow
+        """
+        Wrapper function
+        """
+        key = method.__qualname__
+
+        inputs_key = f"{key}:inputs"
+        outputs_key = f"{key}:outputs"
+
+        input_data = str(args)
+
+        self._redis.rpush(inputs_key, input_data)
+
+        output = method(self, *args, **kwargs)
+
+        output_data = str(output)
+
+        self._redis.rpush(outputs_key, output_data)
+
+        return output
+
+    return wrapper
+
+
 def count_calls(method: Callable) -> Callable:
     """
     A decorator to count the number of times a method is called using Redis.
@@ -49,6 +78,7 @@ class Cache:
         self._redis.flushdb()
 
 
+    @call_history
     @count_calls
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """
@@ -131,23 +161,3 @@ class Cache:
             return None
         # Return the converted integer
         return value
-
-
-if __name__ == "__main__":
-    # create cache instance to store data
-    cache = Cache()
-
-    # create data to be stored
-    TEST_CASES = {
-        # converted to bytes
-        b"foo": None,
-        # converted to integer
-        123: int,
-        # converted to string
-        "bar": lambda d: d.decode("utf-8")
-    }
-
-    # 
-    for value, fn in TEST_CASES.items():
-        key = cache.store(value)
-        assert cache.get(key, fn=fn) == value
