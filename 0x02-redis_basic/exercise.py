@@ -42,7 +42,8 @@ class Cache:
         # Return key as a key-pair {key: "data"}
         return key
 
-    def get(self, key: str, fn: Callable = None):
+    def get(self, key: str,
+            fn: Optional[Callable] = None) -> Union[str, bytes, int, float]:
         """
         Retrieve data from the Redis cache.
 
@@ -51,7 +52,7 @@ class Cache:
             fn (Callable, optional): A callable function to transform the data.
 
         Returns:
-            Union[str, int, bytes]: The retrieved data.
+            Union[str, int, bytes, float]: The retrieved data.
         """
         # Retrieve the key from cache and save to data
         data = self._redis.get(key)
@@ -64,7 +65,7 @@ class Cache:
         return callable_fn
 
 
-    def get_str(self, key: str) -> Union[str, bytes]:
+    def get_str(self, key: str) -> str:
         """
         Retrieve data as a string from the Redis cache.
 
@@ -72,14 +73,14 @@ class Cache:
             key (str): The key associated with the data in the cache.
 
         Returns:
-            Union[str, bytes]: The retrieved data.
+            String: The retrieved data as a string.
         """
         # convert the key from cache to a str using anonymous func(fn)
         value = self._redis.get(key, fn=lambda d: d.decode("utf-8"))
         # Return the convert string
         return value
 
-    def get_int(self, key: str) -> Union[int, bytes]:
+    def get_int(self, key: str) -> int:
         """
         Retrieve data as an integer from the Redis cache.
 
@@ -87,10 +88,16 @@ class Cache:
             key (str): The key associated with the data in the cache.
 
         Returns:
-            Union[int, bytes]: The retrieved data as an integer or bytes.
+            Integer: The retrieved data as an integer.
         """
-        # convert the key from cache to an int
-        value = self._redis.get(key, fn=int)
+        # get the key from cache, save as value
+        value = self._redis.get(key)
+        try:
+            # Convert retrieved value to a string, and then an integer
+            value = int(value.decode("utf-8"))
+        except Exception:
+            # Return None if value is none-convertible
+            return None
         # Return the converted integer
         return value
 
