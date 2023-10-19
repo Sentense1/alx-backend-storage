@@ -18,21 +18,29 @@ def call_history(method: Callable) -> Callable:
         """
         Wrapper function
         """
-        key = method.__qualname__
+        # Use the qualified name of the decorated function as the base key
+        base_key = method.__qualname__
 
-        inputs_key = f"{key}:inputs"
-        outputs_key = f"{key}:outputs"
+        # Create keys for Redis lists to store inputs and outputs
+        inputs_key = f"{base_key}:inputs"  # Key for storing input arguments
+        outputs_key = f"{base_key}:outputs"  # Key for storing function outputs
 
+        # Convert input arguments to a normalized string representation
         input_data = str(args)
 
+        # Use RPUSH to store input arguments in the inputs list in Redis
         self._redis.rpush(inputs_key, input_data)
 
+        # Call the original method to retrieve the function output
         output = method(self, *args, **kwargs)
 
+        # Convert the function output to a normalized string representation
         output_data = str(output)
 
+        # Use RPUSH to store the output in the outputs list in Redis
         self._redis.rpush(outputs_key, output_data)
 
+        # Return the output from the original function
         return output
 
     return wrapper
@@ -60,6 +68,26 @@ def count_calls(method: Callable) -> Callable:
     return wrapper
 
 
+def replay(method: Callable) -> None:
+    """
+
+    """
+    method_name = method.__qualname__
+
+    cache = redis.Redis()
+
+    inputs_key = f"{method_name}:inputs"
+    outputs_key = f"{method_name}:outputs"
+
+    input_data = cache.lrange(inputs_key, 0, -1)
+    output_data = cache.lrange(outputs_key, 0, -1)
+
+    calls_count = len(input_data)
+
+    print(f"{method_name} was called {calls_count} times:")
+    for inputs, outputs in zip(input_data, output_data):
+        print(f"{method_name}({inputs.decode('utf-8')}) -> {outputs.decode('utf-8')}")  # noqa
+
 
 class Cache:
     """
@@ -76,7 +104,6 @@ class Cache:
         """
         self._redis = redis.Redis(host=host, port=port, db=db)
         self._redis.flushdb()
-
 
     @call_history
     @count_calls
@@ -124,7 +151,6 @@ class Cache:
         else:
             # Return the data none-converted
             return data
-
 
     def get_str(self, key: str) -> str:
         """
