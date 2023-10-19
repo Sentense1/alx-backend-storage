@@ -5,6 +5,7 @@ Module defines a simple caching class that stores data in a Redis cache.
 
 import redis
 import uuid
+from ctypes import Union
 
 
 class Cache:
@@ -24,7 +25,7 @@ class Cache:
         self._redis.flushdb()
 
 
-    def store(self, data) -> str:
+    def store(self, data: Union[str, int, float, bytes]) -> str:
         """
         Store the provided data in the Redis cache and return the key.
 
