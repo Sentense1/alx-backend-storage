@@ -12,7 +12,7 @@ class Cache:
     """
     A simple caching class that stores data in a Redis cache.
     """
-    def __init__(self, host='localhost', port=6379, db=0):
+    def __init__(self):
         """
         Initialize the Cache instance with a connection to a Redis server.
 
@@ -21,11 +21,11 @@ class Cache:
             port (int): The Redis server port (default is 6379).
             db (int): The Redis database index (default is 0).
         """
-        self._redis = redis.Redis(host=host, port=port, db=db)
+        self._redis = redis.Redis()
         self._redis.flushdb()
 
 
-    def store(self, data: Union[str, int, float, bytes]) -> str:
+    def store(self, data: Union[str, bytes, int, float]) -> str:
         """
         Store the provided data in the Redis cache and return the key.
 
