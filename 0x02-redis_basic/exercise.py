@@ -20,9 +20,7 @@ def count_calls(method: Callable) -> Callable:
         callable: The decorated method.
     """
     @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):
-        """
-        """
+    def wrapper(self, *args, **kwargs):  # soucery skip: avoid-builtin-shadow
         # Use the qualified name as the key
         key = method.__qualname__
         # Increment the call coun t using the INCR command
