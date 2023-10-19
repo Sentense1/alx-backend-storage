@@ -19,7 +19,7 @@ def count_calls(method: Callable) -> Callable:
     Returns:
         callable: The decorated method.
     """
-    @functools.wrap(method)
+    @functools.wraps(method)
     def wrapper(self, *args, **kwargs):
         """
         """
