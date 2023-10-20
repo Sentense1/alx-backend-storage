@@ -1,52 +1,36 @@
 #!/usr/bin/env python3
-"""web module
 """
-from functools import wraps
-from typing import Callable
-import redis
+web cache and tracker
+"""
 import requests
+import redis
+from functools import wraps
 
-_redis = redis.Redis()
-_redis.flushdb()
+store = redis.Redis()
 
 
-def count_requests(method: Callable) -> Callable:
-    """count_requests function
-
-    Args:
-        method (Callable): method
-
-    Returns:
-        Callable: wrapper
-    """
+def count_url_access(method):
+    """ Decorator counting how many times
+    a URL is accessed """
     @wraps(method)
-    def wrapper(*args, **kwargs):
-        """wrapper function
+    def wrapper(url):
+        cached_key = "cached:" + url
+        cached_data = store.get(cached_key)
+        if cached_data:
+            return cached_data.decode("utf-8")
 
-        Returns:
-            [type]: wrapper
-        """
-        url = args[0]
-        cached = _redis.get(f"cached:{url}")
-        if cached:
-            return cached.decode("utf-8")
-        response = method(*args, **kwargs)
-        _redis.incr(f"count:{url}")
-        _redis.setex(f"cached:{url}", 10, response)
-        return response
+        count_key = "count:" + url
+        html = method(url)
+
+        store.incr(count_key)
+        store.set(cached_key, html)
+        store.expire(cached_key, 10)
+        return html
     return wrapper
 
 
-@count_requests
+@count_url_access
 def get_page(url: str) -> str:
-    """get_page function
-
-    Args:
-        url (str): url
-
-    Returns:
-        str: response
-    """
-    response = requests.get(url, timeout=10)
-    return response.text
-
+    """ Returns HTML content of a url """
+    res = requests.get(url)
+    return res.text
