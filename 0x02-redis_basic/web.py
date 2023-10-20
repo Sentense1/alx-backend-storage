@@ -18,6 +18,9 @@ def count_requests(function: Callable) -> Callable:
         """Wrapper for decorator"""
         count_url_key = f"count:{url}"
         redis_.incr(count_url_key)
+        Count = redis_.get(count_url_key)
+        # print out url count
+        print("{} was requested {} times\n\n".format(url, Count))
         cached_url_key = f"cached:{url}"
         cached_html = redis_.get(cached_url_key)
 
