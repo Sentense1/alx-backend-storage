@@ -70,7 +70,11 @@ def count_calls(method: Callable) -> Callable:
 
 def replay(method: Callable) -> None:
     """
-
+    Replays the history of a function
+    Args:
+        method: The function to be decorated
+    Returns:
+        None
     """
     method_name = method.__qualname__
 
@@ -84,9 +88,11 @@ def replay(method: Callable) -> None:
 
     calls_count = len(input_data)
 
-    print(f"{method_name} was called {calls_count} times:")
+    print("{} was called {} times".format(method_name, calls_count))
     for inputs, outputs in zip(input_data, output_data):
-        print(f"{method_name}({inputs.decode('utf-8')})")  # noqa
+        print("{}(*{}) -> {}".format(method_name, inputs.decode("utf08"),
+                                    outputs.decode("utf-8")))
+
 
 
 class Cache:
