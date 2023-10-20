@@ -6,29 +6,29 @@ import redis
 import requests
 from typing import Callable
 
-# Create a Redis connection
-redis_ = redis.Redis()
-
 
 def count_requests(function: Callable) -> Callable:
     """Decorator for counting requests and caching responses in Redis"""
 
     @wraps(function)
-    def wrapper(url):
+    def wrapper(url):  # sourcery skip: use-named-expression
         """Wrapper for decorator"""
+        # Create a Redis connection
+        client = redis.Redis()
+
         count_url_key = f"count:{url}"
-        redis_.incr(count_url_key)
-        Count = redis_.get(count_url_key)
+        client.incr(count_url_key)
+        Count = client.get(count_url_key)
         # print out url count
         print("{} was requested {} times\n\n".format(url, Count))
         cached_url_key = f"cached:{url}"
-        cached_html = redis_.get(cached_url_key)
+        cached_html = client.get(cached_url_key)
 
         if cached_html:
             return cached_html.decode('utf-8')
         else:
             html = function(url)
-            redis_.setex(cached_url_key, 5, html)
+            client.setex(cached_url_key, 10, html)
             return html
 
     return wrapper
