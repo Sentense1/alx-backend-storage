@@ -1,36 +1,42 @@
 #!/usr/bin/env python3
-"""
-web cache and tracker
-"""
-import requests
+""" Module to make requests to a site and save to Redis """
+
+import functools
 import redis
-from functools import wraps
+import requests
+from typing import Callable
 
-store = redis.Redis()
 
+def count_requests(function: Callable) -> Callable:
+    """Decorator for counting requests and caching responses in Redis"""
 
-def count_url_access(method):
-    """ Decorator counting how many times
-    a URL is accessed """
-    @wraps(method)
-    def wrapper(url):
-        cached_key = "cached:" + url
-        cached_data = store.get(cached_key)
-        if cached_data:
-            return cached_data.decode("utf-8")
+    @functools.wraps(function)
+    def wrapper(url):  # sourcery skip: use-named-expression
+        """Wrapper for decorator"""
+        # Create a Redis connection
+        client = redis.Redis()
+        client.flushdb()
 
-        count_key = "count:" + url
-        html = method(url)
+        count_url_key = f"count:{url}"
+        client.incr(count_url_key)
+        Count = client.get(count_url_key)
+        # print out url count
+        print("{} was requested {} times\n\n".format(url, Count))
+        cached_url_key = f"cached:{url}"
+        cached_html = client.get(cached_url_key)
 
-        store.incr(count_key)
-        store.set(cached_key, html)
-        store.expire(cached_key, 10)
-        return html
+        if cached_html:
+            return cached_html.decode('utf-8')
+        else:
+            html = function(url)
+            client.setex(cached_url_key, 5, html)
+            return html
+
     return wrapper
 
 
-@count_url_access
+@count_requests
 def get_page(url: str) -> str:
-    """ Returns HTML content of a url """
-    res = requests.get(url)
-    return res.text
+    """Obtain the HTML content of a URL using requests"""
+    response = requests.get(url)
+    return response.text

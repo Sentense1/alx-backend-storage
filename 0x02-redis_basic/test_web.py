@@ -5,10 +5,11 @@ import web
 import redis
 
 # Define the URL to test
-url = "http://www.google.com"
-
+#url = "http://www.google.com"
+url = "http://slowwly.robertomurray.co.uk"
 # Create a Redis connection
 redis_ = redis.Redis()
+redis_.flushdb()
 
 # Get the count for the URL
 count_url_key = f"count:{url}"
