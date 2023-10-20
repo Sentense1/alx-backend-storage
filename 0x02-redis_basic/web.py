@@ -28,7 +28,7 @@ def count_requests(function: Callable) -> Callable:
             return cached_html.decode('utf-8')
         else:
             html = function(url)
-            redis_.setex(cached_url_key, 10, html)
+            redis_.setex(cached_url_key, 5, html)
             return html
 
     return wrapper
