@@ -9,6 +9,29 @@ from typing import Union, Callable, Optional, Any
 from functools import wraps
 
 
+def count_calls(method: Callable) -> Callable:
+    """
+    A decorator to count the number of times a method is called using Redis.
+
+    Args:
+        method (callable): The method to be decorated.
+
+    Returns:
+        callable: The decorated method.
+    """
+    @wraps(method)
+    def wrapper(self: Any, *args, **kwargs) -> str:  # soucery skip: avoid-builtin-shadow
+        """
+        Wrapper function
+        """
+        # Increment the call coun t using the INCR command
+        self._redis.incr(method.__qualname__)
+        # Call and return the original method
+        return method(self, *args, **kwargs)
+    # Return the wrapper function
+    return wrapper
+
+
 def call_history(method: Callable) -> Callable:
     """
     Decorator function
@@ -43,29 +66,6 @@ def call_history(method: Callable) -> Callable:
         # Return the output from the original function
         return output
 
-    return wrapper
-
-
-def count_calls(method: Callable) -> Callable:
-    """
-    A decorator to count the number of times a method is called using Redis.
-
-    Args:
-        method (callable): The method to be decorated.
-
-    Returns:
-        callable: The decorated method.
-    """
-    @wraps(method)
-    def wrapper(self: Any, *args, **kwargs) -> str:  # soucery skip: avoid-builtin-shadow
-        """
-        Wrapper function
-        """
-        # Increment the call coun t using the INCR command
-        self._redis.incr(method.__qualname__)
-        # Call and return the original method
-        return method(self, *args, **kwargs)
-    # Return the wrapper function
     return wrapper
 
 
