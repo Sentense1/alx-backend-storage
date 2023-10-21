@@ -26,10 +26,12 @@ def count_requests(function: Callable) -> Callable:
         cached_html = client.get(cached_url_key)
 
         if cached_html:
-            return cached_html.decode('utf-8')
+            html = cached_html.decode("utf-8")
+            client.delete(cached_url_key)
+            return html
         else:
             html = function(url)
-            client.setex(cached_url_key, 5, html)
+            client.set(cached_url_key, html, 10)
             return html
 
     return wrapper

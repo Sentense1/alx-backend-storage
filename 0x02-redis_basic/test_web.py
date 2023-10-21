@@ -38,6 +38,12 @@ updated_count = int(redis_.get(count_url_key))
 print(f"Initial count for {url}: {initial_count}")
 print(f"Updated count for {url}: {updated_count}")
 
+# Set the cache key with a 5-second TTL
+cached_url_key = f"cached:{url}"
+# Check the TTL of the key
+ttl = redis_.ttl(cached_url_key)
+print(f"TTL for {cached_url_key}: {ttl} seconds")
+
 # Check if the count was incremented and if the cached data expired
 if initial_count < updated_count:
     print("The count was incremented.")
@@ -47,5 +53,4 @@ else:
 if cached_html is None:
     print("The cached data has expired.")
 else:
-    print("The cached data has not expired.")
-
+    print("The cached data has not expired for Pete's sake!")
