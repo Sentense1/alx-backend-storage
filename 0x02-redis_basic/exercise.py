@@ -6,14 +6,14 @@ Module defines a simple caching class that stores data in a Redis cache.
 import redis
 import uuid
 from typing import Union, Callable, Optional, Any
-import functools
+from functools import wraps
 
 
 def call_history(method: Callable) -> Callable:
     """
     Decorator function
     """
-    @functools.wraps(method)
+    @wraps(method)
     def wrapper(self, *args, **kwargs):  # soucery skip: avoid-builtin-shadow
         """
         Wrapper function
@@ -56,7 +56,7 @@ def count_calls(method: Callable) -> Callable:
     Returns:
         callable: The decorated method.
     """
-    @functools.wraps(method)
+    @wraps(method)
     def wrapper(self: Any, *args, **kwargs) -> str:  # soucery skip: avoid-builtin-shadow
         """
         Wrapper function
