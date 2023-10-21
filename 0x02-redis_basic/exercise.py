@@ -5,7 +5,7 @@ Module defines a simple caching class that stores data in a Redis cache.
 
 import redis
 import uuid
-from typing import Union, Callable, Optional
+from typing import Union, Callable, Optional, Any
 import functools
 
 
@@ -57,14 +57,12 @@ def count_calls(method: Callable) -> Callable:
         callable: The decorated method.
     """
     @functools.wraps(method)
-    def wrapper(self, *args, **kwargs):  # soucery skip: avoid-builtin-shadow
+    def wrapper(self: Any, *args, **kwargs) -> str:  # soucery skip: avoid-builtin-shadow
         """
         Wrapper function
         """
-        # Use the qualified name as the key
-        key = method.__qualname__
         # Increment the call coun t using the INCR command
-        self._redis.incr(key)
+        self._redis.incr(method.__qualname__)
         # Call and return the original method
         return method(self, *args, **kwargs)
     # Return the wrapper function
