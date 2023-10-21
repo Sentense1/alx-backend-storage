@@ -19,13 +19,15 @@ def count_calls(method: Callable) -> Callable:
     Returns:
         callable: The decorated method.
     """
+    method_key = method.__qualname__
+
     @wraps(method)
     def wrapper(self: Any, *args, **kwargs) -> str:  # soucery skip: avoid-builtin-shadow
         """
         Wrapper function
         """
         # Increment the call coun t using the INCR command
-        self._redis.incr(method.__qualname__)
+        self._redis.incr(method_key)
         # Call and return the original method
         return method(self, *args, **kwargs)
     # Return the wrapper function
