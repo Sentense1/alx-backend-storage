@@ -1,51 +1,25 @@
 #!/usr/bin/env python3
-"""web module
 """
-from functools import wraps
-from typing import Callable
+Module for making request for Redis
+"""
 import redis
 import requests
 
-_redis = redis.Redis()
-_redis.flushdb()
+
+r = redis.Redis(host='localhost', port=6379, db=0)
 
 
-def count_requests(method: Callable) -> Callable:
-    """count_requests function
-
-    Args:
-        method (Callable): method
-
-    Returns:
-        Callable: wrapper
-    """
-    @wraps(method)
-    def wrapper(*args, **kwargs):
-        """wrapper function
-
-        Returns:
-            [type]: wrapper
-        """
-        url = args[0]
-        cached = _redis.get(f"cached:{url}")
-        if cached:
-            return cached.decode("utf-8")
-        response = method(*args, **kwargs)
-        _redis.incr(f"count:{url}")
-        _redis.set(f"cached:{url}", response, ex=10)
-        return response
-    return wrapper
-
-
-@count_requests
 def get_page(url: str) -> str:
-    """get_page function
-
-    Args:
-        url (str): url
-
-    Returns:
-        str: response
     """
-    response = requests.get(url, timeout=10)
-    return response.text
+    Get_page function
+    """
+    """obtain the HTML content of a particular URL and returns it.
+    """
+    response = requests.get(url)
+    html_content = response.text
+    cached = r.get(f"cached{html_content}")
+    if cached:
+        return cached.decode("utf-8")
+    r.incr(f"count:{url}")
+    r.setex(f"cached:{url}", 10, html_content)
+    return html_content
