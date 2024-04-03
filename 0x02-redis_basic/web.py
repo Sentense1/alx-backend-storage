@@ -20,13 +20,10 @@ def counter(func: Callable) -> Callable:
         """
         MAin function wrapper
         """
-        r.incr(f'count:{url}')
-        cached_page = r.get(f'{url}')
-        if cached_page:
-            return cached_page.decode('utf-8')
-        response = func(url)
-        r.set(f'{url}', response, 10)
-        return response
+        access_count = f"count:{url}"
+        r.incr(access_count)
+        r.expire(access_count, 10)
+        return func(url)
     return wrapper
 
 
