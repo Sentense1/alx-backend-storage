@@ -21,13 +21,12 @@ def counter(func: Callable) -> Callable:
         MAin function wrapper
         """
         r.incr(f'count:{url}')
-        result = r.get(f'result:{url}')
-        if result:
-            return result.decode('utf-8')
-        result = func(url)
-        r.set(f'count:{url}', 0)
-        r.setex(f'result:{url}', 10, result)
-        return result
+        cached_page = r.get(f'{url}')
+        if cached_page:
+            return cached_page.decode('utf-8')
+        response = func(url)
+        r.set(f'{url}', response, 10)
+        return response
     return wrapper
 
 
