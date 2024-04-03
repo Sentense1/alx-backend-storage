@@ -16,15 +16,18 @@ def counter(func: Callable) -> Callable:
     FUnction wrapper, outer
     """
     @wraps(func)
-    def wrapper(*args, **kwargs) -> None:
+    def wrapper(url) -> None:
         """
         MAin function wrapper
         """
-        url = args[0]
-        access_count = f"cahed:{url}"
-        r.incr(access_count)
-        r.expire(access_count, 10)
-        return func(*args, **kwargs)
+        r.incr(f'count:{url}')
+        result = r.get(f'result:{url}')
+        if result:
+            return result.decode('utf-8')
+        result = func(url)
+        r.set(f'count:{url}', 0)
+        r.setex(f'result:{url}', 10, result)
+        return result
     return wrapper
 
 
