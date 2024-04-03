@@ -28,21 +28,19 @@ def access_count(func: Callable) -> Optional[Callable]:
         """
         cache_key = f"count:{args[0]}"
 
-        url_text, status_code = func(*args, **kwargs)
-        print('url test: ', url_text, 'status code: ', status_code)
-        if url_text and status_code == 200:
+        url_text = func(*args, **kwargs)
+        if url_text:
             redis_client.incr(cache_key)
             redis_client.expire(cache_key, CACHE_EXPIRY)
             value = redis_client.get(cache_key)
             return value
         else:
-            print("Request to url failed")
             return
 
     return wrapper
 
 @access_count
-def get_page(url: str) -> Optional[tuple]:
+def get_page(url: str) -> str:
     """
     Fetches the HTML content of a URL using requests.
 
@@ -57,7 +55,7 @@ def get_page(url: str) -> Optional[tuple]:
         response.raise_for_status()
     except Exception:
         pass
-    return response.text, response.status_code
+    return response.text
 
 
 if __name__ == "__main__":
