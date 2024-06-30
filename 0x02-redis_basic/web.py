@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#1/usr/bin/env python3
 """
 Module for making request for Redis
 """
@@ -16,14 +16,19 @@ def counter(func: Callable) -> Callable:
     FUnction wrapper, outer
     """
     @wraps(func)
-    def wrapper(url) -> None:
+    def wrapper(*args, **kwargs) -> None:
         """
         MAin function wrapper
         """
-        access_count = f"count:{url}"
-        r.incr(access_count)
-        r.expire(access_count, 10)
-        return func(url)
+        key = f"count:{args[0]}"
+        if r.get(key):
+            r.incr(key)
+        else:
+            r.setex(key, 10, 1)
+        result = func(*args, **kwargs)
+        print('cached value: ', r.get(key))
+        return result
+    wrapper.__qualname__ = func.__qualname__
     return wrapper
 
 
@@ -41,3 +46,7 @@ def get_page(url: str) -> str:
     response = requests.get(url)
     html_content = response.text
     return html_content
+
+
+if __name__ == '__main__':
+    get_page('http://slowwly.robertomurray.co.uk')
