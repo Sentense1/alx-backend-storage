@@ -23,10 +23,13 @@ def counter(func: Callable) -> Callable:
         key = f"count:{args[0]}"
         if r.get(key):
             r.incr(key)
+            # print('ttl: ', r.ttl(key))
+            # print('key: ', r.get(key))
+            r.expire(key, 10)
         else:
             r.setex(key, 10, 1)
         result = func(*args, **kwargs)
-        print('cached value: ', r.get(key))
+        # print('cached value: ', r.get(key))
         return result
     wrapper.__qualname__ = func.__qualname__
     return wrapper
